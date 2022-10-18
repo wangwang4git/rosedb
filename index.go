@@ -1,15 +1,16 @@
 package rosedb
 
 import (
-	"github.com/flower-corp/rosedb/ds/art"
-	"github.com/flower-corp/rosedb/logfile"
-	"github.com/flower-corp/rosedb/logger"
-	"github.com/flower-corp/rosedb/util"
 	"io"
 	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/flower-corp/rosedb/ds/art"
+	"github.com/flower-corp/rosedb/logfile"
+	"github.com/flower-corp/rosedb/logger"
+	"github.com/flower-corp/rosedb/util"
 )
 
 // DataType Define the data structure type.
@@ -200,6 +201,7 @@ func (db *RoseDB) loadIndexFromLogFiles() error {
 					logger.Fatalf("read log entry from file err, failed to open db")
 				}
 				pos := &valuePos{fid: fid, offset: offset}
+				// log文件存储的LogEntry装载进入内存
 				db.buildIndex(dataType, entry, pos)
 				offset += esize
 			}

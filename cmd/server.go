@@ -1,12 +1,11 @@
 package main
 
+// redcon -- Redis compatible server framework for Go
+// https://github.com/tidwall/redcon
 import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/flower-corp/rosedb"
-	"github.com/flower-corp/rosedb/logger"
-	"github.com/tidwall/redcon"
 	"io/ioutil"
 	"os"
 	"os/signal"
@@ -14,6 +13,10 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/flower-corp/rosedb"
+	"github.com/flower-corp/rosedb/logger"
+	"github.com/tidwall/redcon"
 )
 
 var (
@@ -82,6 +85,7 @@ func main() {
 	// init and start server
 	svr := &Server{dbs: dbs, signal: sig, opts: *serverOpts, mu: new(sync.RWMutex)}
 	addr := svr.opts.host + ":" + svr.opts.port
+	// 构建redis server
 	redServer := redcon.NewServerNetwork("tcp", addr, execClientCommand, svr.redconAccept,
 		func(conn redcon.Conn, err error) {
 		},

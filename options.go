@@ -66,6 +66,7 @@ type Options struct {
 	// Entry size will be saved in the discard file, recording the invalid size in a log file, and be used when log file gc is running.
 	// This option represents the size of that channel.
 	// If you got errors like `send discard chan fail`, you can increase this option to avoid it.
+	// Default value is 8MB.
 	DiscardBufferSize int
 }
 

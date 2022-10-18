@@ -3,13 +3,14 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/flower-corp/rosedb"
-	"github.com/flower-corp/rosedb/util"
-	"github.com/tidwall/redcon"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/flower-corp/rosedb"
+	"github.com/flower-corp/rosedb/util"
+	"github.com/tidwall/redcon"
 )
 
 const (
@@ -33,7 +34,7 @@ func newWrongNumOfArgsError(cmd string) error {
 // +-------+--------+----------+------------+-----------+-------+---------+
 func info(cli *Client, args [][]byte) (interface{}, error) {
 	// todo
-	return "info", nil
+	return "info\n", nil
 }
 
 // +-------+--------+----------+------------+-----------+-------+---------+
@@ -244,9 +245,7 @@ func mGet(cli *Client, args [][]byte) (interface{}, error) {
 		return nil, newWrongNumOfArgsError("mget")
 	}
 	var keys [][]byte
-	for _, key := range args {
-		keys = append(keys, key)
-	}
+	keys = append(keys, args...)
 	values, err := cli.db.MGet(keys)
 	return values, err
 }

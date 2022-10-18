@@ -3,13 +3,14 @@ package rosedb
 import (
 	"bytes"
 	"errors"
-	"github.com/flower-corp/rosedb/logfile"
-	"github.com/flower-corp/rosedb/logger"
-	"github.com/flower-corp/rosedb/util"
 	"math"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/flower-corp/rosedb/logfile"
+	"github.com/flower-corp/rosedb/logger"
+	"github.com/flower-corp/rosedb/util"
 )
 
 // Set set key to hold the string value. If key already holds a value, it is overwritten.

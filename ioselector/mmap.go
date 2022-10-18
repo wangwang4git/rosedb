@@ -1,14 +1,16 @@
 package ioselector
 
 import (
-	"github.com/flower-corp/rosedb/mmap"
 	"io"
 	"os"
+
+	"github.com/flower-corp/rosedb/mmap"
 )
 
 // MMapSelector represents using memory-mapped file I/O.
 type MMapSelector struct {
-	fd     *os.File
+	fd *os.File
+	// 对于mmap方式，操作的都是buffer内存
 	buf    []byte // a buffer of mmap
 	bufLen int64
 }

@@ -3,12 +3,6 @@ package rosedb
 import (
 	"encoding/binary"
 	"errors"
-	"github.com/flower-corp/rosedb/ds/art"
-	"github.com/flower-corp/rosedb/ds/zset"
-	"github.com/flower-corp/rosedb/flock"
-	"github.com/flower-corp/rosedb/logfile"
-	"github.com/flower-corp/rosedb/logger"
-	"github.com/flower-corp/rosedb/util"
 	"io"
 	"io/ioutil"
 	"math"
@@ -22,6 +16,13 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	"github.com/flower-corp/rosedb/ds/art"
+	"github.com/flower-corp/rosedb/ds/zset"
+	"github.com/flower-corp/rosedb/flock"
+	"github.com/flower-corp/rosedb/logfile"
+	"github.com/flower-corp/rosedb/logger"
+	"github.com/flower-corp/rosedb/util"
 )
 
 var (
@@ -82,11 +83,6 @@ type (
 		entrySize int
 	}
 
-	strIndex struct {
-		mu      *sync.RWMutex
-		idxTree *art.AdaptiveRadixTree
-	}
-
 	indexNode struct {
 		value     []byte
 		fid       uint32
@@ -95,6 +91,10 @@ type (
 		expiredAt int64
 	}
 
+	strIndex struct {
+		mu      *sync.RWMutex
+		idxTree *art.AdaptiveRadixTree
+	}
 	listIndex struct {
 		mu    *sync.RWMutex
 		trees map[string]*art.AdaptiveRadixTree
@@ -182,11 +182,13 @@ func Open(opts Options) (*RoseDB, error) {
 	}
 
 	// load the log files from disk.
+	// 存储log文件引用
 	if err := db.loadLogFiles(); err != nil {
 		return nil, err
 	}
 
 	// load indexes from log files.
+	// 加载log文件存储的LogEntry进入内存
 	if err := db.loadIndexFromLogFiles(); err != nil {
 		return nil, err
 	}
@@ -309,6 +311,7 @@ func (db *RoseDB) writeLogEntry(ent *logfile.LogEntry, dataType DataType) (*valu
 
 	opts := db.opts
 	entBuf, esize := logfile.EncodeEntry(ent)
+	// 新开log文件
 	if activeLogFile.WriteAt+int64(esize) > opts.LogFileSizeThreshold {
 		if err := activeLogFile.Sync(); err != nil {
 			return nil, err
@@ -359,6 +362,10 @@ func (db *RoseDB) loadLogFiles() error {
 	fidMap := make(map[DataType][]uint32)
 	for _, file := range fileInfos {
 		if strings.HasPrefix(file.Name(), logfile.FilePrefix) {
+			/*
+				log.strs.000000000
+				log.hash.000000000
+			*/
 			splitNames := strings.Split(file.Name(), ".")
 			fid, err := strconv.Atoi(splitNames[2])
 			if err != nil {
@@ -428,6 +435,13 @@ func (db *RoseDB) initDiscard() error {
 	}
 
 	discards := make(map[DataType]*discard)
+	/*
+		log.zset.discard
+		log.sets.discard
+		log.hash.discard
+		log.list.discard
+		log.strs.discard
+	*/
 	for i := String; i < logFileTypeNum; i++ {
 		name := logfile.FileNamesMap[logfile.FileType(i)] + discardFileName
 		dis, err := newDiscard(discardPath, name, db.opts.DiscardBufferSize)
@@ -706,6 +720,7 @@ func (db *RoseDB) doRunGC(dataType DataType, specifiedFid int, gcRatio float64) 
 			if ent.ExpiredAt != 0 && ent.ExpiredAt <= ts {
 				continue
 			}
+			// 读取的LogEntry如果没有删除或者过期，则走重新写入流程
 			var rewriteErr error
 			switch dataType {
 			case String:
